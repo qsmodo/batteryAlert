@@ -1,0 +1,3 @@
+This script polls the battery level every `sleeptime` seconds and opens a Xmessage window whenever it becomes low or very low. 
+
+Set the low and very low levels by modifying the script itself (defaults: 19% and 9%).

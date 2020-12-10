@@ -1,0 +1,37 @@
+#!/bin/sh
+# This script polls the battery level every `sleeptime` seconds and opens a
+#   Xmessage window whenever it becomes low or very low. 
+#
+# The variable `already` equals:
+#   0 if no sound alert has been emited yet.
+#   1 if a sound alert of low battery has already been emited.
+#   2 if a sound alert of critical battery has already been emited.
+# 
+# `already` is reset to 0 whenever the battery is detected to be charging.
+
+# Ensure these paths are correct in your system if the script exits prematurely
+fc="/sys/class/power_supply/BAT1/capacity"
+fs="/sys/class/power_supply/BAT1/status"
+[ -f "$fc" ] && [ -f "$fs" ] || exit 1
+
+low=19     # Low battery level percentage
+crit=9     # Very low battery level percentage
+time=60    # Interval between each poll, in seconds
+already=0
+
+while :; do
+  status=$(cat "$fs")
+  if [ "$status" = "Discharging" ]; then
+    capacity=$(cat "$fc")
+    if [ "$capacity" -le "$crit" ] && [ "$already" != 2 ]; then
+      xmessage -bg red -button Close -default Close "Battery at $capacity%" &
+      already=2
+    elif [ "$capacity" -le "$low" ] && [ "$already" = 0 ]; then
+      xmessage -bg yellow -button Close -default Close "Battery at $capacity%" &
+      already=1
+    fi
+  else
+    already=0
+  fi
+  sleep "$time"
+done
